@@ -1,0 +1,46 @@
+# TikTok upload defaults — every option exposed by TikTok Studio's web composer.
+#
+# Copy this file to <project>/upload-defaults.yaml and edit.
+# Per-video sidecar at videos/<name>.yaml deep-overlays this file.
+# Null / empty / [] = "leave the field alone in the composer".
+
+# ───────────────── Mode ─────────────────
+# "api"     — uses TikTok Content Posting API (requires tiktok-api-creds.yaml)
+# "browser" — drives studio.tiktok.com/upload via agent-browser (default)
+# "auto"    — try API first, fall back to browser if creds missing or API errors
+mode: auto
+
+# ───────────────── Caption ─────────────────
+caption: |
+  Default caption.
+  #fyp #foryou
+                                # ≤2200 chars; inline #hashtags + @mentions
+
+# ───────────────── Cover ─────────────────
+cover_frame_seconds:            # int — pull cover from N seconds in; null = TikTok default
+cover_image:                    # path — overrides cover_frame_seconds
+
+# ───────────────── Visibility / engagement ─────────────────
+visibility: public              # public | friends | private
+allow_comments: true
+allow_duet: true
+allow_stitch: true
+
+# ───────────────── Disclosures ─────────────────
+ai_generated: false
+audience_age_18plus: false
+
+# ───────────────── Schedule ─────────────────
+schedule:                       # ISO 8601 datetime; null = post now
+                                # max ~10 days out per TikTok rules
+
+# ───────────────── Copyright ─────────────────
+copyright_check_skip: false     # ignore pre-publish copyright warning + try Post
+
+# ───────────────── Pacing ─────────────────
+# Tuned for 5 posts/day target. TikTok soft-blocks faster than IG or YouTube.
+daily_cap: 5
+pace_seconds: 3600              # 1 hour minimum between posts
+
+# ───────────────── Alerts ─────────────────
+notify_email:

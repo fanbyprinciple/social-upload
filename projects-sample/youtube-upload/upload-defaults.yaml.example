@@ -1,0 +1,57 @@
+# YouTube upload defaults — every option exposed by Studio's web wizard.
+# Copy this file to <project>/upload-defaults.yaml and edit.
+#
+# Resolution rules:
+#   - Null/empty = "leave Studio's default — don't touch the field"
+#   - A per-video sidecar at videos/<name>.yaml overlays this file (deep merge)
+#   - `title` null → derived from filename stem (hyphens/underscores → spaces, title-case)
+
+# --- required: Studio refuses to advance without these ---
+visibility: public            # public | unlisted | private
+made_for_kids: false          # true | false  — COPPA disclosure
+altered_content: false        # true | false  — AI/synthetic content disclosure
+
+# --- basic ---
+title:                        # null → derive from filename stem
+description: |
+  Uploaded automatically.
+tags: []                      # list of strings, joined by comma, ≤500 chars total
+category: "People & Blogs"    # People & Blogs | Comedy | Education | Entertainment | Film | Gaming | How-to | Music | News | Nonprofits | Pets | Science | Sports | Travel | Auto
+playlists: []                 # names of existing playlists; will be matched in Studio
+thumbnail:                    # path to .jpg/.png; null = Studio auto-pick
+
+# --- Show more (advanced) ---
+paid_promotion: false
+automatic_chapters: true
+automatic_places: true
+automatic_concepts: true
+allow_embedding: true
+notify_subscribers: true
+show_likes: true
+license: standard             # standard | creative_commons
+shorts_remixing: video_and_audio  # video_and_audio | audio_only | none
+
+# Comments
+comments: on                  # on | off
+comment_moderation: basic     # basic | strict | hold_all | off
+who_can_comment: anyone       # anyone | subscribers | approved
+comment_sort: top             # top | newest
+
+# Optional metadata Studio surfaces in Show more
+video_language:               # e.g. "English" | null
+caption_certification:        # "None" | "FCC compliant" | null
+recording_date:               # YYYY-MM-DD | null
+video_location:               # free-form string (autocompletes) | null
+
+# --- Visibility tab extras ---
+premiere: false               # only valid when visibility=public
+schedule:                     # ISO 8601 datetime e.g. 2026-05-15T09:00:00
+                              # When set, visibility is forced to private until that time
+
+# --- queue / pacing ---
+daily_cap: 50                 # halt queue when this many uploads done today
+pace_seconds: 60              # sleep between uploads in queue mode
+
+# --- alerts ---
+notify_email:                 # recipient for session-expired emails (e.g. ijagup@gmail.com)
+                              # leave blank to skip email; macOS banner always fires

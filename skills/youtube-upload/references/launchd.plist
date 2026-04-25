@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Sample launchd plist — fires upload-queue.sh every 10 minutes while the Mac
+  is awake. Internal pacing + daily_cap throttle the actual upload rate.
+
+  Install:
+    cp this-file ~/Library/LaunchAgents/com.youtube-upload.plist
+    launchctl bootstrap gui/$UID ~/Library/LaunchAgents/com.youtube-upload.plist
+    launchctl enable gui/$UID/com.youtube-upload
+
+  Edit YT_UPLOAD_PROJECT below to your project dir.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.youtube-upload</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/YOU/.claude/skills/youtube-upload/scripts/upload-queue.sh</string>
+    </array>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>YT_UPLOAD_PROJECT</key>
+        <string>/Users/YOU/codeplay/ijp_research/CSOS/socials/youtube-upload</string>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    </dict>
+
+    <key>StartInterval</key>
+    <integer>600</integer>
+
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/YOU/codeplay/ijp_research/CSOS/socials/youtube-upload/logs/launchd.out</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/YOU/codeplay/ijp_research/CSOS/socials/youtube-upload/logs/launchd.err</string>
+</dict>
+</plist>

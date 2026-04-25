@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Sample launchd plist — fires the TikTok upload-queue every hour. Slowest
+  cadence of the three platforms because TikTok's anti-spam fires fastest.
+  Internal daily_cap (default 5) + pace_seconds (default 3600) further throttle.
+
+  Install:
+    cp this-file ~/Library/LaunchAgents/com.tiktok-upload.plist
+    launchctl bootstrap gui/$UID ~/Library/LaunchAgents/com.tiktok-upload.plist
+    launchctl enable gui/$UID/com.tiktok-upload
+
+  Edit TT_UPLOAD_PROJECT below to your project dir, change /Users/YOU/.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.tiktok-upload</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/YOU/.claude/skills/tiktok-upload/scripts/upload-queue.sh</string>
+    </array>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>TT_UPLOAD_PROJECT</key>
+        <string>/Users/YOU/codeplay/ijp_research/CSOS/socials/tiktok-uploads</string>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    </dict>
+
+    <key>StartInterval</key>
+    <integer>3600</integer>
+
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/YOU/codeplay/ijp_research/CSOS/socials/tiktok-uploads/logs/launchd.out</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/YOU/codeplay/ijp_research/CSOS/socials/tiktok-uploads/logs/launchd.err</string>
+</dict>
+</plist>

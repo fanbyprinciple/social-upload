@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Sample launchd plist — fires the IG upload-queue every 30 minutes while the
+  Mac is awake. Slower than YouTube's 10-min cadence because IG's anti-spam
+  fires faster. Internal daily_cap (default 25) + pace_seconds (default 300)
+  throttle the actual upload rate further.
+
+  Install:
+    cp this-file ~/Library/LaunchAgents/com.instagram-upload.plist
+    launchctl bootstrap gui/$UID ~/Library/LaunchAgents/com.instagram-upload.plist
+    launchctl enable gui/$UID/com.instagram-upload
+
+  Edit IG_UPLOAD_PROJECT below to your project dir, and change /Users/YOU/ to
+  your home dir.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.instagram-upload</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/YOU/.claude/skills/instagram-upload/scripts/upload-queue.sh</string>
+    </array>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>IG_UPLOAD_PROJECT</key>
+        <string>/Users/YOU/codeplay/ijp_research/CSOS/socials/instagram-reels</string>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    </dict>
+
+    <key>StartInterval</key>
+    <integer>1800</integer>
+
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/YOU/codeplay/ijp_research/CSOS/socials/instagram-reels/logs/launchd.out</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/YOU/codeplay/ijp_research/CSOS/socials/instagram-reels/logs/launchd.err</string>
+</dict>
+</plist>

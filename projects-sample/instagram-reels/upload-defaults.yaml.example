@@ -1,0 +1,60 @@
+# Instagram Reel upload defaults — every option exposed by IG's web composer.
+#
+# Copy this file to <project>/upload-defaults.yaml and edit.
+# Per-video sidecar at videos/<name>.yaml deep-overlays this file.
+# Null / empty / [] = "leave the field alone in the composer".
+#
+# Composer pages (in order driven by the skill):
+#   1. Crop      → uses default crop unless `crop_aspect` set
+#   2. Edit      → cover frame + trim + audio toggle
+#   3. New reel  → caption, location, collaborators, tag people, accessibility,
+#                  music, advanced settings
+
+# ───────────────── Crop page ─────────────────
+crop_aspect:                    # "original" | "1:1" | "4:5" | "9:16"; null = default
+
+# ───────────────── Edit page ─────────────────
+cover_frame_seconds:            # int — pull cover from N seconds in; null = IG picks
+cover_image:                    # path to .jpg/.png; overrides cover_frame_seconds
+mute_original_audio: false      # true = strips original audio; pair with `music_*`
+trim_start_seconds:             # null = no trim
+trim_end_seconds:               # null = no trim
+
+# ───────────────── New reel page ─────────────────
+caption: |
+  Default caption.
+  #hashtag1 #hashtag2
+location:                       # free-form; IG autocompletes Foursquare POIs
+collaborators: []               # @handles invited as co-creators (max 3)
+tagged_people: []               # @handles tagged in the video
+topics: []                      # ≤3 from: art, beauty, books, cars, comedy,
+                                # dance, diy, fashion, fitness, food, gaming,
+                                # lifestyle, music, nature, pets, photography,
+                                # science, sports, technology, travel
+alt_text:                       # accessibility — string describing the visual
+
+# ───────────────── Music ─────────────────
+# IG composer has an "Add audio" picker. Set music_search to a query string;
+# skill types it into the picker and picks the first result. music_track_url
+# (the IG audio page URL) is more reliable when you know the exact track.
+music_search:                   # e.g. "lofi chill" — null = keep original audio
+music_track_url:                # https://www.instagram.com/reels/audio/<id>/
+music_start_seconds: 0          # offset into the music track
+music_volume: 100               # 0–100; original audio volume scales inversely
+
+# ───────────────── Advanced settings ─────────────────
+hide_like_count: false
+hide_view_count: false
+disable_comments: false
+crosspost_to_facebook: true
+paid_partnership: false
+branded_content_partner:        # @handle if paid_partnership=true
+audience_age_18plus: false
+recommend_on_facebook: true
+
+# ───────────────── Pacing ─────────────────
+daily_cap: 25
+pace_seconds: 300
+
+# ───────────────── Alerts ─────────────────
+notify_email:                   # recipient for session-expired / cooldown emails

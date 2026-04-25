@@ -1,0 +1,27 @@
+# TikTok Content Posting API credentials.
+#
+# Copy to <project>/tiktok-api-creds.yaml and fill in. Do NOT commit.
+# chmod 600 once filled.
+#
+# How to get these:
+#   1. Sign up at https://developers.tiktok.com/
+#   2. Create app: "My Apps" → "Connect an app"
+#   3. Add product: "Content Posting API" (request access if needed —
+#      Sandbox approves immediately for "inbox" mode; Production requires audit)
+#   4. Note the client_key + client_secret from the app's Basic Information
+#   5. Run the OAuth flow once (e.g. via tiktok-developers' Playground or your
+#      own /oauth/token/ endpoint) to get an access_token + refresh_token for
+#      your TikTok account (the one you want to post to)
+#
+# Endpoint mode:
+#   "inbox"  — posts to your TikTok drafts; you publish manually from the app.
+#              Auto-approved by TikTok (Sandbox). Good for safety + review flow.
+#   "direct" — publishes immediately. Requires Content Posting API audit
+#              (real review by TikTok, takes weeks). Production only.
+
+client_key:        # e.g. "awexx12345abcde"
+client_secret:     # e.g. "secretsecretsecret"
+access_token:      # OAuth access_token for the target TikTok account
+refresh_token:     # OAuth refresh_token (skill auto-refreshes when expired)
+
+endpoint_mode: inbox       # inbox | direct

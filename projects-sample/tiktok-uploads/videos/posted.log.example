@@ -1,0 +1,6 @@
+# Sample posted.log — one tab-separated line per TikTok.
+# Format: <iso8601-timestamp>\t<filename>\t<tiktok-url-or-draft-pointer>
+# Browser mode posts publish immediately and return /@<handle>/video/<id>.
+# API inbox mode sends to drafts; the URL is a static drafts pointer until
+# you publish from the mobile app.
+2026-04-25T16:00:00+05:30	first-tiktok.mp4	https://www.tiktok.com/@prestocranius/video/7287654321987654321

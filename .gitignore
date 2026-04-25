@@ -1,0 +1,45 @@
+# Sensitive — credentials, tokens, cookies
+**/tiktok-api-creds.yaml
+!**/tiktok-api-creds.yaml.example
+**/.youtube-upload-chrome-profile/
+state/
+
+# Per-user project state — only commit the templates
+**/upload-defaults.yaml
+!**/upload-defaults.yaml.example
+!skills/*/assets/upload-defaults.template.yaml
+
+# Per-video sidecar overlays (user-specific captions, locations, etc.)
+projects-sample/*/videos/*.yaml
+!projects-sample/*/videos/*.yaml.example
+
+# Actual video files — never commit content
+**/videos/*.mp4
+**/videos/*.mov
+**/videos/*.m4v
+**/videos/*.webm
+**/videos/posted/
+**/videos/failed/*.mp4
+**/videos/failed/*.mov
+**/videos/failed/*.m4v
+**/videos/failed/*.webm
+
+# Live posted/failed logs (URLs are sensitive too — public-facing)
+**/videos/posted.log
+!**/videos/posted.log.example
+**/videos/failed/*.error
+**/logs/upload.log
+**/logs/upload.log.*
+**/logs/launchd.out
+**/logs/launchd.err
+**/logs/*-cooldown.until
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp

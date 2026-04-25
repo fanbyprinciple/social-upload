@@ -184,7 +184,12 @@ def main():
         print(f"[ig upload-one] not a file: {video}", file=sys.stderr); sys.exit(66)
 
     cfg, cfg_path = load_config(video, args.config)
-    caption = (cfg.get("caption") or "").strip() or derive_caption(video)
+    # Filename auto-derivation disabled: caption MUST come from the YAML
+    # sidecar (or upload-defaults.yaml). The producing pipeline (e.g. Moto Razr)
+    # is the source of truth for content metadata.
+    caption = (cfg.get("caption") or "").strip()
+    if not caption:
+        sys.exit("[ig upload-one] missing 'caption' in resolved YAML — sidecar must provide it (auto-derive disabled)")
     location = cfg.get("location") or ""
     hide_likes = bool(cfg.get("hide_like_count"))
     disable_comments = bool(cfg.get("disable_comments"))

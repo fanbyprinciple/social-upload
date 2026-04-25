@@ -132,6 +132,16 @@ social-upload/
 
 ---
 
+## Moto Razr clockface integration
+
+The first production user of these skills is the [Moto Razr GIF clockface pipeline](MOTO_RAZR_INTEGRATION.md). That doc captures:
+
+- How `processed_gifs.json` captions feed the per-video YAML sidecar (no filename auto-derive — captions come from the producing pipeline as the source of truth).
+- The **CC0 music guardrail** discovered when YouTube Content ID flagged a `source: "local"` track: stage only MP4s whose `musicTrack` starts with `freepd-`.
+- Five YouTube Studio DOM quirks we hit and fixed (title contenteditable needs `execCommand`, radios have `aria-label=null`, altered-content labels are just `"Yes"`/`"No"`, two overlapping Save buttons, `session-check` must switch to a youtube tab before the cookie probe).
+
+If you're integrating another producing pipeline (not Moto Razr), use `MOTO_RAZR_INTEGRATION.md` as a template — the Studio quirks apply universally; the Razr-specific bits (catalog.json, processed_gifs.json) are easy to swap.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

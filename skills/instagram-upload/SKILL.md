@@ -74,7 +74,7 @@ Canonical commented version at `assets/upload-defaults.template.yaml`. Key field
 
 | Section | Key | Values |
 |---------|-----|--------|
-| basic | `caption` | string ≤2200 chars; `#hashtags` and `@mentions` inline |
+| basic | `caption` | string ≤2200 chars; `#hashtags` and `@mentions` inline. **REQUIRED** — must come from sidecar YAML or `upload-defaults.yaml`. Filename auto-derive is **disabled** (the producing pipeline, e.g. Moto Razr `processed_gifs.json` `captions.instagram`, is the canonical source). |
 | basic | `location` | free-form string; IG autocompletes |
 | basic | `collaborators` | list of `@handles` (max 3) |
 | basic | `tagged_people` | list of `@handles` |

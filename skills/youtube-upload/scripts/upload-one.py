@@ -16,7 +16,7 @@ Exit codes:
   77 daily upload limit hit on YouTube side — caller should requeue
 """
 
-import argparse, os, re, sys, time, subprocess, pathlib, datetime
+import argparse, json, os, re, sys, time, subprocess, pathlib, datetime
 
 try:
     import yaml
@@ -134,6 +134,60 @@ def click_button_by_text(text: str) -> bool:
     return "clicked" in ab("eval", js)
 
 
+def set_contenteditable_by_aria(aria_substr: str, text: str) -> bool:
+    """Find the contenteditable div whose aria-label contains <aria_substr>
+    (e.g. 'Add a title' or 'Tell viewers'), focus it, clear it, insert text.
+    More reliable than focus-then-fill against Studio's React form, which
+    swallows ref-targeted fills and produces title concatenation."""
+    js = (
+        "(()=>{const lbl=" + json.dumps(aria_substr) + ";"
+        "const els=Array.from(document.querySelectorAll('div[contenteditable=true]'));"
+        "const el=els.find(e=>(e.getAttribute('aria-label')||'').includes(lbl));"
+        "if(!el)return 'no-el:'+lbl;"
+        "el.focus();"
+        "document.execCommand('selectAll');"
+        "document.execCommand('delete');"
+        f"document.execCommand('insertText',false,{json.dumps(text)});"
+        "return 'ok';})()"
+    )
+    return "ok" in ab("eval", js)
+
+
+def click_radio_by_text(label: str, exact: bool = False) -> bool:
+    """Click a Studio radio by textContent. Studio's radios have aria-label=null,
+    so match on .textContent. Use exact=True for ambiguous short labels like 'No'
+    (which would also match 'No, it's not made for kids'); use exact=False for
+    substring match on uniquely-prefixed labels."""
+    js = (
+        "(()=>{const lbl=" + json.dumps(label) + ";"
+        "const exact=" + ("true" if exact else "false") + ";"
+        "const norm=s=>(s||'').replace(/[\\u2018\\u2019\\u02BC]/g,\"'\").trim();"
+        "const lblN=norm(lbl);"
+        "const all=Array.from(document.querySelectorAll('tp-yt-paper-radio-button,[role=radio]'));"
+        "const r=exact"
+        "?all.find(e=>norm(e.textContent)===lblN)"
+        ":all.find(e=>norm(e.textContent).includes(lblN));"
+        "if(!r)return 'no:'+lbl;"
+        "r.scrollIntoView({block:'center'});"
+        "r.click();"
+        "return 'clicked';})()"
+    )
+    return "clicked" in ab("eval", js)
+
+
+def click_save_button() -> bool:
+    """Click Studio's #done-button — the publish button on the Visibility tab.
+    There are TWO buttons whose innerText is 'Save' and they overlap visually,
+    so naive 'find role button --name Save' lands on the inner wrapper, which
+    no-ops. Targeting #done-button directly is reliable."""
+    js = (
+        "(()=>{const b=document.getElementById('done-button');"
+        "if(!b||b.disabled)return 'no';"
+        "b.scrollIntoView();b.click();return 'clicked';})()"
+    )
+    return "clicked" in ab("eval", js)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("video", type=pathlib.Path)
@@ -146,10 +200,17 @@ def main():
         return 66
 
     cfg, cfg_path = load_config(video, args.config)
-    title = cfg.get("title") or derive_title(video)
-    description = (cfg.get("description") or "").strip() or derive_description(video, title)
-    if not (cfg.get("tags") or []):
-        cfg["tags"] = derive_tags(title)
+    # Filename auto-derivation disabled: title/description/tags MUST come from the
+    # YAML sidecar (or upload-defaults.yaml). The Moto Razr pipeline is the
+    # source of truth for captions. See processed_gifs.json -> captions.*.
+    title = cfg.get("title")
+    if not title:
+        sys.exit("[upload-one] missing 'title' in resolved YAML — sidecar must provide it (auto-derive disabled)")
+    description = (cfg.get("description") or "").strip()
+    if not description:
+        sys.exit("[upload-one] missing 'description' in resolved YAML — sidecar must provide it (auto-derive disabled)")
+    # Tags optional — empty list is fine; we do NOT derive from filename.
+    cfg["tags"] = cfg.get("tags") or []
     visibility = cfg.get("visibility") or "public"
     schedule = cfg.get("schedule")
     if schedule and visibility == "public":
@@ -194,41 +255,38 @@ def main():
         print("[upload-one] Details tab never rendered", file=sys.stderr)
         sys.exit(71)
 
-    # 5. Title — overwrite if config sets one different from auto-fill
-    s = snap()
-    title_ref = find_ref(s, "Add a title that describes your video", role="textbox")
-    if title_ref and cfg.get("title"):
-        click(title_ref); ab("press", "Meta+A"); ab("press", "Delete")
-        fill(title_ref, title)
+    # 5. Title — find contenteditable by aria-label substring + execCommand insert.
+    if cfg.get("title"):
+        if not set_contenteditable_by_aria("Add a title", title):
+            print("[upload-one] WARN: title field not set", file=sys.stderr)
 
-    # 6. Description
+    # 6. Description — same pattern.
     if description:
-        s = snap()
-        desc_ref = find_ref(s, "Tell viewers about your video", role="textbox")
-        if desc_ref:
-            click(desc_ref); fill(desc_ref, description)
+        if not set_contenteditable_by_aria("Tell viewers", description):
+            print("[upload-one] WARN: description field not set", file=sys.stderr)
 
-    # 7. Made-for-kids (required)
-    s = snap()
+    # 7. Made-for-kids (required). Studio's radios have aria-label=null, so we
+    # match on textContent. Kids labels are uniquely prefixed so substring match
+    # is fine.
     kids_label = ("Yes, it's made for kids" if cfg.get("made_for_kids")
                   else "No, it's not made for kids")
-    ref = find_ref(s, kids_label, role="radio")
-    if ref: click(ref)
+    if not click_radio_by_text(kids_label):
+        print(f"[upload-one] WARN: kids radio '{kids_label}' not clicked", file=sys.stderr)
 
-    # 8. Show advanced settings — DOM rebuilds, refs invalidated
+    # 8. Show advanced settings — DOM rebuilds; wait for it to render.
     click_button_by_text("Show more")
-    time.sleep(2)
+    time.sleep(3)
 
     # 9. Re-confirm kids choice (selection often lost on rebuild)
-    s = snap()
-    ref = find_ref(s, kids_label, role="radio")
-    if ref: click(ref)
+    click_radio_by_text(kids_label)
 
-    # 10. Altered content (required)
-    alt_label = ("Yes, it includes altered content" if cfg.get("altered_content")
-                 else "No, it doesn’t include altered content")
-    ref = find_ref(s, alt_label, role="radio")
-    if ref: click(ref)
+    # 10. Altered content. Studio uses just "Yes" / "No" labels here (NOT the
+    # verbose "Yes, it includes altered content" form), so we need exact match
+    # to avoid colliding with the kids "No, it's not made for kids" radio.
+    alt_label = "Yes" if cfg.get("altered_content") else "No"
+    if not click_radio_by_text(alt_label, exact=True):
+        print(f"[upload-one] WARN: altered radio '{alt_label}' not clicked", file=sys.stderr)
+    time.sleep(0.5)
 
     # 11. Tags
     tags = cfg.get("tags") or []
@@ -267,14 +325,11 @@ def main():
         ab("find", "role", "button", "click", "--name", "Next")
         time.sleep(3)
 
-    # 15. Visibility radio
+    # 15. Visibility radio — exact-match by textContent.
     vis_label = {"private": "Private", "unlisted": "Unlisted", "public": "Public"}[visibility]
-    s = snap()
-    ref = find_ref(s, vis_label, role="radio")
-    if not ref:
+    if not click_radio_by_text(vis_label, exact=True):
         print(f"[upload-one] visibility radio '{vis_label}' not found", file=sys.stderr)
         sys.exit(71)
-    click(ref)
     time.sleep(1)
 
     # 16. Schedule (private + future date)
@@ -289,24 +344,28 @@ def main():
               "not yet implemented — video saved as Private; set the date manually in Studio",
               file=sys.stderr)
 
-    # 17. Save / Publish (button name varies by Studio version)
-    saved = False
-    for label in ("Save", "Publish"):
-        try:
-            r = subprocess.run(
-                ["agent-browser", "--auto-connect", "find", "role", "button",
-                 "click", "--name", label],
-                capture_output=True, text=True, timeout=15,
-            )
-            if r.returncode == 0:
-                saved = True
-                break
-        except subprocess.TimeoutExpired:
-            continue
+    # 17. Save / Publish — Studio renders TWO buttons named "Save" (an outer
+    # ytcp-uploads-dialog wrapper + an inner button), so naive name-based click
+    # lands on the inner shape and silently no-ops. The dialog's publish
+    # button is reliably `#done-button`. Fall back to text-based for safety.
+    saved = click_save_button()
+    if not saved:
+        for label in ("Publish", "Save"):
+            try:
+                r = subprocess.run(
+                    ["agent-browser", "--auto-connect", "find", "role", "button",
+                     "click", "--name", label],
+                    capture_output=True, text=True, timeout=15,
+                )
+                if r.returncode == 0:
+                    saved = True
+                    break
+            except subprocess.TimeoutExpired:
+                continue
     if not saved:
         print("[upload-one] Save/Publish button not found", file=sys.stderr)
         sys.exit(71)
-    time.sleep(5)
+    time.sleep(6)
 
     # 18. Extract URL from confirmation dialog
     # Studio confirmation dialog can show youtu.be (long-form), watch?v= (long-form),

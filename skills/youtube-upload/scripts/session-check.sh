@@ -18,6 +18,22 @@ if ! curl -s "http://localhost:${PORT}/json/version" >/dev/null 2>&1; then
   exit 2
 fi
 
+# agent-browser returns cookies for the ACTIVE tab's origin only. If the active
+# tab is `about:blank` or non-Google, the cookie probe returns zero. Switch to
+# (or open) a YouTube tab first so we read the right cookie jar. The new-tab
+# fallback hits youtube.com homepage — NOT studio.youtube.com — so it does not
+# trip Google's automation heuristics on Studio.
+yt_tab="$(agent-browser --auto-connect tab list 2>/dev/null \
+  | grep -iE 'youtube\.com|google\.com' \
+  | head -n1 \
+  | sed -n 's/.*\[\(t[0-9][0-9]*\)\].*/\1/p')"
+if [[ -n "$yt_tab" ]]; then
+  agent-browser --auto-connect tab "$yt_tab" >/dev/null 2>&1 || true
+else
+  agent-browser --auto-connect open "https://www.youtube.com/" >/dev/null 2>&1 || true
+  sleep 1
+fi
+
 # Google's session cookies — at least one of SAPISID / SID / HSID must be set
 # for studio.youtube.com to consider the user signed in.
 google_cookie_count="$(agent-browser --auto-connect cookies get 2>/dev/null \

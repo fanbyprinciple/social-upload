@@ -64,9 +64,9 @@ Every key optional except `visibility`, `made_for_kids`, `altered_content` (Stud
 | required | `visibility` | `public` (default) \| `unlisted` \| `private` |
 | required | `made_for_kids` | `true` \| `false` |
 | required | `altered_content` | `true` \| `false` (AI/synthetic disclosure) |
-| basic | `title` | string; null → derive from filename stem (hyphens/underscores → spaces, title-case) |
-| basic | `description` | multiline string; null → auto-built from title as `"<title>\n\n#<TitlePascal> #Word1 #Word2"` (stopwords excluded) |
-| basic | `tags` | list of strings; null/`[]` → auto-derived from title words (stopwords excluded); joined by comma in Studio (≤500 chars total) |
+| basic | `title` | string; **REQUIRED** — must come from sidecar YAML or `upload-defaults.yaml`. Filename auto-derive is **disabled** (the producing pipeline, e.g. Moto Razr `processed_gifs.json` `captions.youtube_title`, is the canonical source). |
+| basic | `description` | multiline string; **REQUIRED** — same as title, no auto-derive. |
+| basic | `tags` | list of strings; optional. Joined by comma in Studio (≤500 chars total). |
 | basic | `category` | `People & Blogs` \| `Education` \| `Entertainment` \| `Gaming` \| `Music` \| `Comedy` \| `Film` \| `News` \| `How-to` \| `Pets` \| `Science` \| `Sports` \| `Travel` \| `Nonprofits` \| `Auto` |
 | advanced | `paid_promotion` `automatic_chapters` `automatic_places` `automatic_concepts` `allow_embedding` `notify_subscribers` `show_likes` | bool; defaults match Studio defaults so omit unless overriding |
 | advanced | `license` | `standard` \| `creative_commons` |
